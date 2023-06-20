@@ -38,25 +38,30 @@ import warnings
 import numpy as np
 
 try:
-    from spglib import _spglib as spg
+    from spglib.lib import _spglib as spg
 except ImportError:
-    import os.path
-    import re
+    import importlib.resources
     from ctypes import cdll
+    from os.path import relpath
 
-    bundled_lib = next(
-        filter(
-            lambda fl: re.match(".*symspg\\..*", fl),
-            sorted(os.listdir(os.path.dirname(__file__))),
-        ),
-        None,
-    )
-    if not bundled_lib:
+    root = importlib.resources.files("spglib.lib")
+    for file in root.iterdir():
+        if "symspg." in file.name:
+            with importlib.resources.as_file(file) as bundled_lib:
+                try:
+                    cdll.LoadLibrary(bundled_lib.__str__())
+                    from spglib.lib import _spglib as spg
+                    break
+                except ImportError as err:
+                    raise FileNotFoundError("Could not load bundled Spglib C library") from err
+    else:
+        files = ", ".join([
+            relpath(file.__str__(), root.__str__()) for file in root.iterdir()
+        ])
         raise FileNotFoundError(
-            "Spglib C++ library is not installed and no bundled version was detected"
+            f"Spglib C library is not installed and no bundled version "
+            f"was detected. Files:{files}"
         )
-    cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), bundled_lib))
-    from spglib import _spglib as spg
 
 
 class SpglibError(object):
@@ -75,7 +80,7 @@ def get_version():
 
 
 def get_symmetry(
-    cell, symprec=1e-5, angle_tolerance=-1.0, mag_symprec=-1.0, is_magnetic=True
+        cell, symprec=1e-5, angle_tolerance=-1.0, mag_symprec=-1.0, is_magnetic=True
 ):
     """Find symmetry operations from a crystal structure and site tensors.
 
@@ -180,12 +185,12 @@ def get_symmetry(
 
 
 def get_magnetic_symmetry(
-    cell,
-    symprec=1e-5,
-    angle_tolerance=-1.0,
-    mag_symprec=-1.0,
-    is_axial=None,
-    with_time_reversal=True,
+        cell,
+        symprec=1e-5,
+        angle_tolerance=-1.0,
+        mag_symprec=-1.0,
+        is_axial=None,
+        with_time_reversal=True,
 ):
     """Find magnetic symmetry operations from a crystal structure and site tensors.
 
@@ -530,11 +535,11 @@ def get_symmetry_layerdataset(cell, aperiodic_dir=2, symprec=1e-5):
 
 
 def get_magnetic_symmetry_dataset(
-    cell,
-    is_axial=None,
-    symprec=1e-5,
-    angle_tolerance=-1.0,
-    mag_symprec=-1.0,
+        cell,
+        is_axial=None,
+        symprec=1e-5,
+        angle_tolerance=-1.0,
+        mag_symprec=-1.0,
 ):
     """Search magnetic symmetry dataset from an input cell.
 
@@ -671,7 +676,7 @@ def get_magnetic_symmetry_dataset(
         dataset["translations"], dtype="double", order="C"
     )
     dataset["time_reversals"] = (
-        np.array(dataset["time_reversals"], dtype="intc", order="C") == 1
+            np.array(dataset["time_reversals"], dtype="intc", order="C") == 1
     )
     dataset["equivalent_atoms"] = np.array(dataset["equivalent_atoms"], dtype="intc")
     dataset["transformation_matrix"] = np.array(
@@ -806,7 +811,7 @@ def get_spacegroup_type(hall_number):
 
 
 def get_spacegroup_type_from_symmetry(
-    rotations, translations, lattice=None, symprec=1e-5
+        rotations, translations, lattice=None, symprec=1e-5
 ):
     """Space group type information is obtained from a set of symmetry operations.
 
@@ -968,7 +973,7 @@ def get_pointgroup(rotations):
 
 
 def standardize_cell(
-    cell, to_primitive=False, no_idealize=False, symprec=1e-5, angle_tolerance=-1.0
+        cell, to_primitive=False, no_idealize=False, symprec=1e-5, angle_tolerance=-1.0
 ):
     """Return standardized cell.
 
@@ -1151,7 +1156,7 @@ def get_grid_point_from_address(grid_address, mesh):
 
 
 def get_ir_reciprocal_mesh(
-    mesh, cell, is_shift=None, is_time_reversal=True, symprec=1e-5, is_dense=False
+        mesh, cell, is_shift=None, is_time_reversal=True, symprec=1e-5, is_dense=False
 ):
     """Return k-points mesh and k-point map to the irreducible k-points.
 
@@ -1201,18 +1206,18 @@ def get_ir_reciprocal_mesh(
     if is_shift is None:
         is_shift = [0, 0, 0]
     if (
-        spg.ir_reciprocal_mesh(
-            grid_address,
-            grid_mapping_table,
-            np.array(mesh, dtype="intc"),
-            np.array(is_shift, dtype="intc"),
-            is_time_reversal * 1,
-            lattice,
-            positions,
-            numbers,
-            symprec,
-        )
-        > 0
+            spg.ir_reciprocal_mesh(
+                grid_address,
+                grid_mapping_table,
+                np.array(mesh, dtype="intc"),
+                np.array(is_shift, dtype="intc"),
+                is_time_reversal * 1,
+                lattice,
+                positions,
+                numbers,
+                symprec,
+            )
+            > 0
     ):
         return grid_mapping_table, grid_address
     else:
@@ -1220,7 +1225,7 @@ def get_ir_reciprocal_mesh(
 
 
 def get_stabilized_reciprocal_mesh(
-    mesh, rotations, is_shift=None, is_time_reversal=True, qpoints=None, is_dense=False
+        mesh, rotations, is_shift=None, is_time_reversal=True, qpoints=None, is_dense=False
 ):
     """Return k-point map to the irreducible k-points and k-point grid points.
 
@@ -1276,16 +1281,16 @@ def get_stabilized_reciprocal_mesh(
             qpoints = np.array([qpoints], dtype="double", order="C")
 
     if (
-        spg.stabilized_reciprocal_mesh(
-            grid_address,
-            mapping_table,
-            np.array(mesh, dtype="intc"),
-            np.array(is_shift, dtype="intc"),
-            is_time_reversal * 1,
-            np.array(rotations, dtype="intc", order="C"),
-            qpoints,
-        )
-        > 0
+            spg.stabilized_reciprocal_mesh(
+                grid_address,
+                mapping_table,
+                np.array(mesh, dtype="intc"),
+                np.array(is_shift, dtype="intc"),
+                is_time_reversal * 1,
+                np.array(rotations, dtype="intc", order="C"),
+                qpoints,
+            )
+            > 0
     ):
         return mapping_table, grid_address
     else:
@@ -1293,7 +1298,7 @@ def get_stabilized_reciprocal_mesh(
 
 
 def get_grid_points_by_rotations(
-    address_orig, reciprocal_rotations, mesh, is_shift=None, is_dense=False
+        address_orig, reciprocal_rotations, mesh, is_shift=None, is_dense=False
 ):
     """Return grid points obtained after rotating input grid address.
 
@@ -1346,7 +1351,7 @@ def get_grid_points_by_rotations(
 
 
 def get_BZ_grid_points_by_rotations(
-    address_orig, reciprocal_rotations, mesh, bz_map, is_shift=None, is_dense=False
+        address_orig, reciprocal_rotations, mesh, bz_map, is_shift=None, is_dense=False
 ):
     """Return grid points obtained after rotating input grid address.
 
@@ -1405,11 +1410,11 @@ def get_BZ_grid_points_by_rotations(
 
 
 def relocate_BZ_grid_address(
-    grid_address,
-    mesh,
-    reciprocal_lattice,  # column vectors
-    is_shift=None,
-    is_dense=False,
+        grid_address,
+        mesh,
+        reciprocal_lattice,  # column vectors
+        is_shift=None,
+        is_dense=False,
 ):
     """Grid addresses are relocated to be inside first Brillouin zone.
 

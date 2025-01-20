@@ -74,8 +74,7 @@ autodoc2_docstring_parser_regexes = [
 autodoc2_annotations = False
 autodoc2_packages = [
     {
-        "path": "../python/spglib/spglib.py",
-        "module": "spglib",
+        "path": "../python/spglib",
     },
 ]
 autodoc2_hidden_objects = ["dunder", "private", "inherited"]

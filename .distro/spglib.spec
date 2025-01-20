@@ -14,8 +14,6 @@ URL:            https://spglib.readthedocs.io/
 
 Source:         https://github.com/spglib/spglib/archive/refs/tags/v%{version}.tar.gz
 
-Patch:          Relax_numpy_requirements.patch
-
 BuildRequires:  ninja-build
 BuildRequires:  cmake
 BuildRequires:  gcc
@@ -24,6 +22,7 @@ BuildRequires:  gcc-fortran
 BuildRequires:  cmake(GTest)
 %if %{with python}
 BuildRequires:  python3-devel
+BuildRequires:  tomcli
 %endif
 
 %description
@@ -86,6 +85,8 @@ develop applications with spglib Python3 bindings.
 
 %cmake_build
 %if %{with python}
+# Remove the numpy version constraint
+tomcli set pyproject.toml arrays replace "build-system.requires" "numpy.*" "numpy"
 %pyproject_wheel
 %endif
 

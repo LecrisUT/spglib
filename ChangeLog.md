@@ -14,6 +14,8 @@ GitHub release pages and in the git history.
 ### Python API
 
 - Switched to using pybind11 for generating the python bindings
+- Deprecated `get_error_message()` and `error` attributes.
+- Python functions can now raise exceptions. To opt-in set `spglib.OLD_ERROR_HANLDING=False`
 
 ### Fortran API
 

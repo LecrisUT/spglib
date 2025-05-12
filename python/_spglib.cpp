@@ -1,11 +1,11 @@
 // Copyright (C) 2025 Spglib team
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include <pybind11/pybind11.h>
+#include <nanobind/nanobind.h>
 
 #include "py_bindings.h"
 
-PYBIND11_MODULE(_spglib, module) {
+NB_MODULE(_spglib, module) {
     using namespace py::literals;
     using namespace spglib;
     module.doc() = "Spglib compiled bindings.";
@@ -38,26 +38,28 @@ PYBIND11_MODULE(_spglib, module) {
     module.def("grid_point_from_address", spglib::grid_point_from_address, "");
     module.def(
         "ir_reciprocal_mesh",
-        py::overload_cast<array_int, array_int, array_int, array_int, py::int_,
-                          array_double, array_double, array_int, py::float_>(
-            spglib::ir_reciprocal_mesh),
+        py::overload_cast<array_int<>, array_int<>, array_int<>, array_int<>,
+                          py::int_, array_double<>, array_double<>, array_int<>,
+                          py::float_>(spglib::ir_reciprocal_mesh),
         "");
     module.def(
         "ir_reciprocal_mesh",
-        py::overload_cast<array_int, array_size_t, array_int, array_int,
-                          py::int_, array_double, array_double, array_int,
+        py::overload_cast<array_int<>, array_size_t<>, array_int<>, array_int<>,
+                          py::int_, array_double<>, array_double<>, array_int<>,
                           py::float_>(spglib::ir_reciprocal_mesh),
         "");
-    module.def("stabilized_reciprocal_mesh",
-               py::overload_cast<array_int, array_int, array_int, array_int,
-                                 py::int_, array_int, array_double>(
-                   spglib::stabilized_reciprocal_mesh),
-               "");
-    module.def("stabilized_reciprocal_mesh",
-               py::overload_cast<array_int, array_size_t, array_int, array_int,
-                                 py::int_, array_int, array_double>(
-                   spglib::stabilized_reciprocal_mesh),
-               "");
+    module.def(
+        "stabilized_reciprocal_mesh",
+        py::overload_cast<array_int<>, array_int<>, array_int<>, array_int<>,
+                          py::int_, array_int<>, array_double<>>(
+            spglib::stabilized_reciprocal_mesh),
+        "");
+    module.def(
+        "stabilized_reciprocal_mesh",
+        py::overload_cast<array_int<>, array_size_t<>, array_int<>, array_int<>,
+                          py::int_, array_int<>, array_double<>>(
+            spglib::stabilized_reciprocal_mesh),
+        "");
     module.def("grid_points_by_rotations", spglib::grid_points_by_rotations,
                "");
     module.def("BZ_grid_points_by_rotations",

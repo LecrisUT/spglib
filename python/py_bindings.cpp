@@ -8,15 +8,12 @@
 using namespace spglib;
 
 py::tuple spglib::version_tuple() {
-    py::tuple version(3);
-    version[0] = spg_get_major_version();
-    version[1] = spg_get_minor_version();
-    version[2] = spg_get_micro_version();
-    return version;
+    return py::make_tuple(spg_get_major_version(), spg_get_minor_version(),
+                          spg_get_micro_version());
 }
-py::str spglib::version_string() { return spg_get_version(); }
-py::str spglib::version_full() { return spg_get_version_full(); }
-py::str spglib::commit() { return spg_get_commit(); }
+py::str spglib::version_string() { return py::str{spg_get_version()}; }
+py::str spglib::version_full() { return py::str{spg_get_version_full()}; }
+py::str spglib::commit() { return py::str{spg_get_commit()}; }
 
 static auto wyckoffs_index_to_letter =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -345,11 +342,7 @@ std::optional<py::tuple> spglib::pointgroup(array_int rotations) {
         spg_get_pointgroup(symbol, (int (*)[3])transf_matrix.mutable_data(),
                            (int (*)[3][3])rotations.data(), rotations.shape(0));
 
-    py::list array(3);
-    array[0] = symbol;
-    array[1] = ptg_num;
-    array[2] = transf_matrix;
-    return array;
+    return py::make_tuple(symbol, ptg_num, transf_matrix);
 }
 std::optional<py::int_> spglib::standardize_cell(
     array_double lattice, array_double positions, array_int atom_types,
@@ -513,5 +506,5 @@ std::optional<py::int_> spglib::hall_number_from_symmetry(
                                              rotations.shape(0), symprec);
 }
 py::str spglib::error_message() {
-    return spg_get_error_message(spg_get_error_code());
+    return py::str{spg_get_error_message(spg_get_error_code())};
 }

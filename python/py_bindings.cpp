@@ -454,13 +454,13 @@ py::tuple spglib::pointgroup(array_int rotations) {
     return array;
 }
 py::int_ spglib::standardize_cell(Lattice& lattice, Positions& positions,
-                                  array_int atom_types, py::int_ num_atom,
+                                  AtomTypes& atom_types, py::int_ num_atom,
                                   py::int_ to_primative, py::int_ no_idealize,
                                   py::float_ symprec,
                                   py::float_ angle_tolerance) {
-    return spgat_standardize_cell(
-        lattice.data(), positions.data(), atom_types.mutable_data(), num_atom,
-        to_primative, no_idealize, symprec, angle_tolerance);
+    return spgat_standardize_cell(lattice.data(), positions.data(),
+                                  atom_types.data(), num_atom, to_primative,
+                                  no_idealize, symprec, angle_tolerance);
 }
 py::int_ spglib::refine_cell(Lattice& lattice, Positions& positions,
                              AtomTypes& atom_types, py::int_ num_atom,

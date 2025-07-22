@@ -119,7 +119,7 @@ py::int_ magnetic_symmetry_from_database(Rotations& rotations,
                                          py::int_ hall_number);
 py::tuple pointgroup(array_int rotations);
 py::int_ standardize_cell(Lattice& lattice, Positions& positions,
-                          array_int atom_types, py::int_ num_atom,
+                          AtomTypes& atom_types, py::int_ num_atom,
                           py::int_ to_primative, py::int_ no_idealize,
                           py::float_ symprec, py::float_ angle_tolerance);
 py::int_ refine_cell(Lattice& lattice, Positions& positions,
